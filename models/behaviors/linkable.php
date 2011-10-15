@@ -135,41 +135,44 @@ class LinkableBehavior extends ModelBehavior {
 						$options['table'] = $db->fullTableName($_Model, true);
 					}
 
-					if (!empty($options['fields'])) {
-						if ($options['fields'] === true && !empty($association['fields'])) {
-							$options['fields'] = $db->fields($_Model, null, $association['fields']);
-						} elseif ($options['fields'] === true) {
-							$options['fields'] = $db->fields($_Model);
-						}
-						// Leave COUNT() queries alone
-						elseif($options['fields'] != 'COUNT(*) AS `count`')
-						{
-							$options['fields'] = $db->fields($_Model, null, $options['fields']);
-						}
+					//do not mess with fields if specified in $query
+					if (empty($query['fields'])) {
+						if (!empty($options['fields'])) {
+							if ($options['fields'] === true && !empty($association['fields'])) {
+								$options['fields'] = $db->fields($_Model, null, $association['fields']);
+							} elseif ($options['fields'] === true) {
+								$options['fields'] = $db->fields($_Model);
+							}
+							// Leave COUNT() queries alone
+							elseif($options['fields'] != 'COUNT(*) AS `count`')
+							{
+								$options['fields'] = $db->fields($_Model, null, $options['fields']);
+							}
 
-						if (is_array($query['fields']))
+							if (is_array($query['fields']))
+							{
+								$query['fields'] = array_merge($query['fields'], $options['fields']);
+							}
+							// Leave COUNT() queries alone
+							elseif($query['fields'] != 'COUNT(*) AS `count`')
+							{
+								$query['fields'] = array_merge($db->fields($Model), $options['fields']);
+							}
+						}
+						else
 						{
-							$query['fields'] = array_merge($query['fields'], $options['fields']);
-						}
-						// Leave COUNT() queries alone
-						elseif($query['fields'] != 'COUNT(*) AS `count`')
-						{
-							$query['fields'] = array_merge($db->fields($Model), $options['fields']);
-						}
-					}
-					else
-					{
-						if (!empty($association['fields'])) {
-							$options['fields'] = $db->fields($_Model, null, $association['fields']);
-						} else {
-							$options['fields'] = $db->fields($_Model);
-						}
+							if (!empty($association['fields'])) {
+								$options['fields'] = $db->fields($_Model, null, $association['fields']);
+							} else {
+								$options['fields'] = $db->fields($_Model);
+							}
 
-						if (is_array($query['fields'])) {
-							$query['fields'] = array_merge($query['fields'], $options['fields']);
-						} // Leave COUNT() queries alone
-						elseif($query['fields'] != 'COUNT(*) AS `count`') {
-							$query['fields'] = array_merge($db->fields($Model), $options['fields']);
+							if (is_array($query['fields'])) {
+								$query['fields'] = array_merge($query['fields'], $options['fields']);
+							} // Leave COUNT() queries alone
+							elseif($query['fields'] != 'COUNT(*) AS `count`') {
+								$query['fields'] = array_merge($db->fields($Model), $options['fields']);
+							}
 						}
 					}
 
